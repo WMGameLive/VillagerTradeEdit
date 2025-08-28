@@ -36,6 +36,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Level;
 
 /**
  * A class representing a listener for villager trading events in the VillagerTradeEdit plugin.
@@ -44,7 +45,6 @@ import java.util.*;
 public class VillagerEditListener implements Listener {
 
     private VillagerTradeEdit plugin;
-    YskLibWrapper wrapper;
     private final Map<Inventory, Villager> inventoryMap = new HashMap<>();
     private final Map<Inventory, Boolean> tradeAlteredMap = new HashMap<>();
     private final Map<Villager, Boolean> staticMap = new HashMap<>();
@@ -61,7 +61,6 @@ public class VillagerEditListener implements Listener {
     public VillagerEditListener() {
         this.plugin = VillagerTradeEdit.getInstance();
         scheduler = plugin.getServer().getGlobalRegionScheduler();
-        this.wrapper = VillagerTradeEdit.getInstance().wrapper;
         STATIC_KEY = new NamespacedKey(plugin, "static");
         PROFESSION_KEY = new NamespacedKey(plugin, "profession");
         TRADES_KEY = new NamespacedKey(plugin, "trades");
@@ -79,7 +78,7 @@ public class VillagerEditListener implements Listener {
      */
     @EventHandler
     public void onChunkLoad(ChunkLoadEvent event) {
-        if (!wrapper.canExecuteInWorld(event.getWorld())) {
+        if (!plugin.canExecuteInWorld(event.getWorld())) {
             return;
         }
         for (Entity entity : event.getChunk().getEntities()) {
@@ -91,7 +90,7 @@ public class VillagerEditListener implements Listener {
                 NamespacedKey staticKey = new NamespacedKey(plugin, "static");
 
                 if (dataContainer.has(staticKey, PersistentDataType.STRING) && !retrievedVillagers.contains(villager.getUniqueId())) {
-                    wrapper.logDebug("Found villager with data in loaded chunk, attempting to retrieve data");
+                    plugin.getLogger().log(Level.INFO, "Found villager with data in loaded chunk, attempting to retrieve data");
                     retrieveVillagerData(villager);
                     retrievedVillagers.add(villager.getUniqueId());
                 }
@@ -107,7 +106,7 @@ public class VillagerEditListener implements Listener {
      * @param villager The Villager entity whose data is to be stored.
      */
     public void storeVillagerData(Villager villager) {
-        wrapper.logDebug("Storing data for villager " + villager.getUniqueId());
+        plugin.getLogger().log(Level.INFO, "Storing data for villager " + villager.getUniqueId());
 
         PersistentDataContainer dataContainer = villager.getPersistentDataContainer();
 
@@ -118,7 +117,7 @@ public class VillagerEditListener implements Listener {
         // If it doesn't, store a default value
         dataContainer.set(PERMISSION_KEY, PersistentDataType.STRING, permissionMap.getOrDefault(villager, "default_permission"));
 
-        wrapper.logDebug("Stored data for villager " + villager.getUniqueId());
+        plugin.getLogger().log(Level.INFO, "Stored data for villager " + villager.getUniqueId());
     }
 
     /**
@@ -128,7 +127,7 @@ public class VillagerEditListener implements Listener {
      * @param villager The Villager entity whose data is to be retrieved.
      */
     public void retrieveVillagerData(Villager villager) {
-        wrapper.logDebug("Retrieving data for villager " + villager.getUniqueId());
+        plugin.getLogger().log(Level.INFO, "Retrieving data for villager " + villager.getUniqueId());
 
         PersistentDataContainer dataContainer = villager.getPersistentDataContainer();
 
@@ -150,7 +149,7 @@ public class VillagerEditListener implements Listener {
         String tradesData = dataContainer.get(TRADES_KEY, PersistentDataType.STRING);
         villager.setRecipes(deserializeMerchantRecipes(tradesData));
 
-        wrapper.logDebug("Retrieved data for villager " + villager.getUniqueId());
+        plugin.getLogger().log(Level.INFO, "Retrieved data for villager " + villager.getUniqueId());
     }
 
     /**
@@ -260,7 +259,7 @@ public class VillagerEditListener implements Listener {
             return;
         }
 
-        if (!wrapper.canExecuteInWorld(villager.getWorld())) {
+        if (!plugin.canExecuteInWorld(villager.getWorld())) {
             return;
         }
 
@@ -269,8 +268,7 @@ public class VillagerEditListener implements Listener {
             if (!event.getPlayer().hasPermission(permissionMap.get(villager))) {
                 event.setCancelled(true);
                 // Optionally send a message to the player
-                wrapper.logDebugPlayer(player, "&cRequried: " + permissionMap.get(villager));
-                wrapper.sendMessage(player, "You do not have permission to trade with villagers.");
+                player.sendMessage("You do not have permission to trade with villagers.");
             }
         }
 
@@ -346,7 +344,8 @@ public class VillagerEditListener implements Listener {
     private void updatePermissionDisplayItem(Inventory inv, String permission) {
         if (inv == null || inv.getSize() <= 30) {
             // Log or handle the invalid inventory size
-            wrapper.logWarn("Inventory size is invalid or does not contain slot 30.");
+
+            plugin.getLogger().log(Level.WARNING, "Inventory size is invalid or does not contain slot 30.");
             return;
         }
 
@@ -433,31 +432,32 @@ public class VillagerEditListener implements Listener {
             MerchantRecipe newRecipe = new MerchantRecipe(result, 9999);
             if (ingredient1 != null && ingredient1.getType() != Material.AIR) {
                 newRecipe.addIngredient(ingredient1);
-                wrapper.sendMessage(player, "Ingredient 1: " + ingredient1.getType());
+                player.sendMessage("Ingredient 1: " + ingredient1.getType());
             }
             if (ingredient2 != null && ingredient2.getType() != Material.AIR) {
                 newRecipe.addIngredient(ingredient2);
-                wrapper.sendMessage(player, "Ingredient 2: " + ingredient2.getType());
+                player.sendMessage("Ingredient 2: " + ingredient2.getType());
             }
 
             newRecipes.add(newRecipe);
-            wrapper.sendMessage(player, "Result: " + result.getType());
+            player.sendMessage("Result: " + result.getType());
+
         }
 
         // Store the villager's data
         if (staticMap.get(villager) != null && staticMap.get(villager)) {
             // If the villager is static, update the villager's trades and store the villager data
             villager.setRecipes(newRecipes);
-            wrapper.logDebugPlayer(player, "Inventory closed, storing data for villager " + villager.getUniqueId());
+            plugin.getLogger().log(Level.INFO, "Inventory closed, storing data for villager " + villager.getUniqueId());
             storeVillagerData(villager);
             tradeAlteredMap.put(inv, false);
             updateSaveButtonColor(inv);
         } else {
-            wrapper.logDebugPlayer(player, "Inventory closed, Villager is not static, trades not updated");
+            plugin.getLogger().log(Level.INFO, "Inventory closed, Villager is not static, trades not updated");
         }
 
         // Send a message to the player
-        wrapper.sendMessage(player, "Villager data saved!");
+        player.sendMessage("Villager data saved!");
 
 
         // Close the inventory
@@ -485,7 +485,7 @@ public class VillagerEditListener implements Listener {
 
         player.closeInventory();
         // Prompt the player to enter the new permission
-        wrapper.sendMessage(player, "Enter the permission required to trade with this villager:");
+        player.sendMessage("Enter the permission required to trade with this villager:");
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler
             public void onPlayerChat(AsyncPlayerChatEvent event) {
@@ -496,7 +496,7 @@ public class VillagerEditListener implements Listener {
                     // Unregister this listener
                     HandlerList.unregisterAll(this);
                     event.setCancelled(true);
-                    wrapper.sendMessage(player, "Permission set to " + permission);
+                    player.sendMessage("Permission set to " + permission);
                     scheduler.run(plugin, (b) -> {
                         player.openInventory(inv);
                     });
@@ -508,7 +508,7 @@ public class VillagerEditListener implements Listener {
 
     private void handleSetName(Villager villager, Player player, Inventory inv) {
         player.closeInventory();
-        wrapper.sendMessage(player, "Enter the new name for the villager (or 'cancel' to cancel):");
+        player.sendMessage("Enter the new name for the villager (or 'cancel' to cancel):");
         Bukkit.getPluginManager().registerEvents(new Listener() {
             @EventHandler
             public void onPlayerChat(AsyncPlayerChatEvent event) {
@@ -516,12 +516,12 @@ public class VillagerEditListener implements Listener {
                     event.setCancelled(true);
                     String newName = event.getMessage();
                     if (newName.equalsIgnoreCase("cancel")) {
-                        wrapper.sendMessage(player, "Name change cancelled.");
+                        player.sendMessage("Name change cancelled.");
                     } else {
                         villager.getScheduler().run(plugin, task -> {
                             villager.customName(Component.text(newName));
                             villager.setCustomNameVisible(true);
-                            wrapper.sendMessage(player, "Villager name set to: " + newName);
+                            player.sendMessage("Villager name set to: " + newName);
                             updateNameDisplayItem(inv, newName);
                         }, null);
                     }
@@ -600,7 +600,7 @@ public class VillagerEditListener implements Listener {
      * @param player   The Player who triggered the activation.
      */
     void activateStaticMode(Villager villager, Player player) {
-        wrapper.logDebugPlayer(player, "Static Mode Activated");
+        plugin.getLogger().log(Level.INFO, "Static Mode Activated");
         staticMap.put(villager, true);
         villager.setInvulnerable(true);
         villager.setAware(false);
@@ -627,7 +627,7 @@ public class VillagerEditListener implements Listener {
      * @param player   The Player who is deactivating the static mode.
      */
     void deactivateStaticMode(Villager villager, Player player) {
-        wrapper.logDebugPlayer(player, "Static Mode Deactivated");
+        plugin.getLogger().log(Level.INFO, "Static Mode Deactivated");
         staticMap.remove(villager);
         villager.setInvulnerable(false);
         villager.setAware(true);

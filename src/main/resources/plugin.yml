@@ -5,8 +5,6 @@ api-version: '1.21'
 author: Yusaki
 description: Lets you edit villager trades.
 folia-supported: true
-depend:
-  - YskLib
 
 commands:
   vte:

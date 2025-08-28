@@ -1,15 +1,10 @@
 package org.yusaki.villagertradeedit;
 
-import org.bukkit.Bukkit;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.World;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.yusaki.lib.YskLib;
-
 
 public final class VillagerTradeEdit extends JavaPlugin {
-
-    private YskLib yskLib;
-    public YskLibWrapper wrapper;
-
 
     //TODO stop villager moving if already pathfind
     //TODO add villager rotate to player
@@ -19,9 +14,6 @@ public final class VillagerTradeEdit extends JavaPlugin {
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        yskLib = (YskLib) Bukkit.getPluginManager().getPlugin("YskLib");
-        yskLib.updateConfig(this);
-        wrapper = new YskLibWrapper(yskLib);
         getLogger().info("VillagerTradeEdit enabled!");
         VillagerEditListener villagerEditListener = new VillagerEditListener();
         getServer().getPluginManager().registerEvents(villagerEditListener, this);
@@ -37,6 +29,14 @@ public final class VillagerTradeEdit extends JavaPlugin {
 
     public static VillagerTradeEdit getInstance() {
         return getPlugin(VillagerTradeEdit.class);
+    }
+
+    public String getMessage(String key) {
+        return ChatColor.translateAlternateColorCodes('&', getConfig().getString("messages." + key));
+    }
+
+    public boolean canExecuteInWorld(World world) {
+        return getConfig().getStringList("enabled-worlds").contains(world.getName());
     }
 
 }

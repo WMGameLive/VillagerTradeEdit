@@ -5,8 +5,8 @@ VillagerTradeEdit is a Minecraft plugin that allows players with the appropriate
 This is similar to Shopkeepers plugin but it can edit any villager, also It support folia
 
 ## Supported Software Versions
-- Paper 1.20.4 (Untested)
-- Folia 1.20.4
+- Paper 1.21.8
+- Folia 1.21.8
 
 ## Features
 

@@ -18,12 +18,10 @@ import java.util.List;
 
 public class VTECommandExecutor implements CommandExecutor, TabCompleter {
     private final VillagerTradeEdit plugin;
-    private final YskLibWrapper wrapper;
     private final VillagerEditListener villagerEditListener;
 
     public VTECommandExecutor(VillagerTradeEdit plugin, VillagerEditListener villagerEditListener) {
         this.plugin = plugin;
-        this.wrapper = VillagerTradeEdit.getInstance().wrapper;
         this.villagerEditListener = villagerEditListener;
     }
 
@@ -36,22 +34,22 @@ public class VTECommandExecutor implements CommandExecutor, TabCompleter {
 
 
         if (!player.hasPermission("villagertradeedit.command")) {
-            wrapper.sendMessage(player, "noPermission");
+            player.sendMessage(plugin.getMessage("noPermission"));
             return true;
         }
 
         if (args.length == 0) {
-            wrapper.sendMessage(player, "VillagerTradeEdit by Yusaki");
+            player.sendMessage("VillagerTradeEdit by Yusaki");
             return true;
         }
 
         if ("summon".equalsIgnoreCase(args[0])) {
             if (!player.hasPermission("villagertradeedit.command.summon")) {
-                wrapper.sendMessage(player, "noPermission");
+                player.sendMessage(plugin.getMessage("noPermission"));
                 return true;
             }
-            if (!wrapper.canExecuteInWorld(player.getWorld())) {
-                wrapper.sendMessage(player, "disabledWorld");
+            if (!plugin.canExecuteInWorld(player.getWorld())) {
+                player.sendMessage(plugin.getMessage("disabledWorld"));
                 return true;
             }
             BlockIterator iterator = new BlockIterator(player, 5);
@@ -69,17 +67,17 @@ public class VTECommandExecutor implements CommandExecutor, TabCompleter {
                     return true;
                 }
             }
-            wrapper.sendMessage(player, "No block in range to spawn villager.");
+            player.sendMessage("No block in range to spawn villager.");
             return true;
         }
 
         if ("reload".equalsIgnoreCase(args[0])) {
             if (!player.hasPermission("villagertradeedit.command.reload")) {
-                wrapper.sendMessage(player, "noPermission");
+                player.sendMessage(plugin.getMessage("noPermission"));
                 return true;
             }
             plugin.reloadConfig();
-            wrapper.sendMessage(player, "configReloaded");
+            player.sendMessage(plugin.getMessage("configReloaded"));
             return true;
         }
 

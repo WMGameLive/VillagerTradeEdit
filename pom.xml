@@ -82,14 +82,8 @@
         <dependency>
             <groupId>io.papermc.paper</groupId>
             <artifactId>paper-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.yusaki.lib</groupId>
-            <artifactId>YskLib-1.0.0</artifactId>
-            <version>1.0.0</version>
-            <scope>system</scope>
-            <systemPath>D:/Libraries/YskLib-1.0.0.jar</systemPath>
+            <version>1.21.8-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 
